@@ -55,11 +55,10 @@ define logstash::configfile(
   }
 
   concat::fragment { $name:
-    tag     => "LS_CONFIG_${::fqdn}",
+    target  => "${logstash::configdir}/conf.d/logstash.conf",
     content => $config_content,
     source  => $source,
     order   => $order,
-    before  => [ Concat['ls-config'] ]
   }
 
 }
