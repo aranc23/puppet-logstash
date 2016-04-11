@@ -54,12 +54,12 @@ define logstash::configfile(
     $config_content = $content
   }
 
-  file_fragment { $name:
+  concat::fragment { $name:
     tag     => "LS_CONFIG_${::fqdn}",
     content => $config_content,
     source  => $source,
     order   => $order,
-    before  => [ File_concat['ls-config'] ]
+    before  => [ concat['ls-config'] ]
   }
 
 }
