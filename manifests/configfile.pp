@@ -43,7 +43,7 @@
 define logstash::configfile(
   $content = undef,
   $source = undef,
-  $order = 10,
+  $order = '10',
   $template = undef,
 ) {
 
