@@ -50,10 +50,6 @@
 #   String to set the specific core package version you want to install.
 #   Defaults to <tt>false</tt>.
 #
-# [*contrib_version*]
-#   String to set the specific contrib package version you want to install.
-#   Defaults to <tt>false</tt>.
-#
 # [*restart_on_change*]
 #   Boolean that determines if the application should be automatically restarted
 #   whenever the configuration changes. Disabling automatic restarts on config
@@ -69,11 +65,6 @@
 #
 # [*package_url*]
 #   Url to the package to download.
-#   This can be a http,https or ftp resource for remote packages
-#   puppet:// resource or file:/ for local packages
-#
-# [*contrib_package_url*]
-#   Url to the contrib package to download.
 #   This can be a http,https or ftp resource for remote packages
 #   puppet:// resource or file:/ for local packages
 #
@@ -128,16 +119,18 @@
 #   Path to directory containing the logstash configuration.
 #   Use this setting if your packages deviate from the norm (/etc/logstash)
 #
-# [*install_contrib*]
-#  Enable installation of the contrib package
-#
-# [*repo_stage*]
-#   Use stdlib stage setup for managing the repo, instead of anchoring
-#
 # === Examples
 #
 # * Installation, make sure service is running and will be started at boot time:
-#     class { 'logstash': }
+#     class { 'logstash':
+#       manage_repo => true,
+#     }
+#
+# * If you're not already managing Java some other way:
+#     class { 'logstash':
+#       manage_repo  => true,
+#       java_install => true,
+#     }
 #
 # * Removal/decommissioning:
 #     class { 'logstash':
@@ -160,10 +153,8 @@ class logstash(
   $restart_on_change   = $logstash::params::restart_on_change,
   $autoupgrade         = $logstash::params::autoupgrade,
   $version             = false,
-  $contrib_version     = false,
   $software_provider   = 'package',
   $package_url         = undef,
-  $contrib_package_url = undef,
   $package_dir         = $logstash::params::package_dir,
   $purge_package_dir   = $logstash::params::purge_package_dir,
   $package_dl_timeout  = $logstash::params::package_dl_timeout,
@@ -179,8 +170,6 @@ class logstash(
   $init_template       = undef,
   $manage_repo         = false,
   $repo_version        = $logstash::params::repo_version,
-  $install_contrib     = false,
-  $repo_stage          = false
 ) inherits logstash::params {
 
   anchor {'logstash::begin': }
@@ -248,30 +237,10 @@ class logstash(
   }
 
   if ($manage_repo == true) {
-
-    if ($repo_stage == false) {
-      # use anchor for ordering
-
-      # Set up repositories
-      class { 'logstash::repo': }
-
-      # Ensure that we set up the repositories before trying to install
-      # the packages
-      Anchor['logstash::begin']
-      -> Class['logstash::repo']
-      -> Class['logstash::package']
-
-    } else {
-      # use staging for ordering
-
-      if !(defined(Stage[$repo_stage])) {
-        stage { $repo_stage:  before => Stage['main'] }
-      }
-
-      class { 'logstash::repo':
-        stage => $repo_stage
-      }
-    }
+    # Set up repositories
+    # The order (repository before packages) is managed within logstash::repo
+    # We can't use the anchor or stage pattern here, since it breaks other modules also depending on the apt class
+    include logstash::repo
   }
 
   #### Manage relationships
@@ -298,5 +267,4 @@ class logstash(
     -> Anchor['logstash::end']
 
   }
-
 }

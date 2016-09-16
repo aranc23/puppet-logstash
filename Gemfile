@@ -1,25 +1,36 @@
 source 'https://rubygems.org'
+ruby '2.1.9'
 
-puppetversion = ENV['PUPPET_VERSION'] || '~> 3.8.0'
+puppetversion = ENV['PUPPET_VERSION'] || '4.3.2'
 gem 'puppet', puppetversion, :require => false
 
-gem 'beaker'
-gem 'beaker-rspec'
-gem 'metadata-json-lint'
-gem 'rspec-puppet', '2.2.0'
+gem 'beaker', '2.34.0'
+gem 'beaker-rspec', '5.3.0'
+
+# REF: https://github.com/voxpupuli/metadata-json-lint/issues/10
+# gem 'metadata-json-lint'
+
+gem 'rspec-puppet'
 
 gem 'pry'
+gem 'pry-rescue'
 gem 'docker-api', '~> 1.0'
 gem 'rubysl-securerandom'
 gem 'ci_reporter_rspec'
+gem 'google-api-client', '0.9.4' # 0.9.5 needs Ruby 2.
 gem 'rspec', '~> 3.0'
 gem 'rake'
 gem 'puppet-doc-lint'
 gem 'puppet-lint'
+gem 'puppet-strings' if puppetversion =~ /^(3\.[789]|4\.)/
 gem 'puppetlabs_spec_helper'
 gem 'puppet-syntax'
 gem 'rspec-puppet-facts'
+gem 'rubocop'
+gem 'serverspec', '2.34.0'
+gem 'specinfra', '2.57.2'
 gem 'webmock'
+gem 'redcarpet'
 
 # Extra Puppet-lint gems
 gem 'puppet-lint-appends-check', :require => false

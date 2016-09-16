@@ -23,12 +23,9 @@
 # * Richard Pijnenburg <mailto:richard.pijnenburg@elasticsearch.com>
 #
 class logstash::config {
-
-  #### Configuration
-
   File {
     owner => $logstash::logstash_user,
-    group => $logstash::logstash_group
+    group => $logstash::logstash_group,
   }
 
   $notify_service = $logstash::restart_on_change ? {
@@ -37,19 +34,15 @@ class logstash::config {
   }
 
   if ( $logstash::ensure == 'present' ) {
-
-    $patterns_dir = "${logstash::configdir}/patterns"
-    $plugins_dir = "${logstash::configdir}/plugins"
-
     file { $logstash::configdir:
       ensure  => directory,
       purge   => $logstash::purge_configdir,
-      recurse => $logstash::purge_configdir
+      recurse => $logstash::purge_configdir,
     }
 
     file { "${logstash::configdir}/conf.d":
       ensure  => directory,
-      require => File[$logstash::configdir]
+      require => File[$logstash::configdir],
     }
 
     concat { "${logstash::configdir}/conf.d/logstash.conf":
@@ -58,35 +51,28 @@ class logstash::config {
       group   => $logstash::logstash_group,
       mode    => '0644',
       notify  => $notify_service,
-      require => File[ "${logstash::configdir}/conf.d" ]
+      require => File[ "${logstash::configdir}/conf.d" ],
     }
 
-    file { $patterns_dir:
+    $directories = [
+      $logstash::patterndir,
+      $logstash::plugindir,
+      "${logstash::plugindir}/logstash",
+      "${logstash::plugindir}/logstash/inputs",
+      "${logstash::plugindir}/logstash/outputs",
+      "${logstash::plugindir}/logstash/filters",
+      "${logstash::plugindir}/logstash/codecs",
+    ]
+
+    file { $directories:,
       ensure  => directory,
-      require => File[$logstash::configdir]
     }
-
-    file { [
-      $plugins_dir,
-      "${plugins_dir}/logstash",
-      "${plugins_dir}/logstash/inputs",
-      "${plugins_dir}/logstash/outputs",
-      "${plugins_dir}/logstash/filters",
-      "${plugins_dir}/logstash/codecs"
-    ]:
-      ensure  => directory,
-      require => File[$logstash::configdir]
-    }
-
-
-  } elsif ( $logstash::ensure == 'absent' ) {
-
+  }
+  elsif ( $logstash::ensure == 'absent' ) {
     file { $logstash::configdir:
       ensure  => 'absent',
       recurse => true,
-      force   => true
+      force   => true,
     }
-
   }
-
 }
